@@ -89,29 +89,30 @@ void diel::ExecuteEvents()throw( LQError ){
   if(k_running_nonprompt){ elid = "ELECTRON_HN_FAKELOOSEv7"; }
   std::vector<snu::KElectron> electrons = GetElectrons(false, false, elid);
   std::vector<snu::KElectron> electrons_veto = GetElectrons("ELECTRON_HN_VETO");
+  std::vector<snu::KMuon> muons = GetMuons("MUON_HN_TIGHT"); 
   std::vector<snu::KMuon> muons_veto = GetMuons("MUON_HN_VETO", true);
 
   std::vector<snu::KJet> jets = GetJets("JET_HN");
-  std::vector<snu::KJet> jets5 = GetJets("JET_HN_TChannel");
+  std::vector<snu::KJet> jets5 = GetJets("JET_HN", 10., 5.0);
   int njet = jets.size();
-  int nbjet = NBJet(GetJets("JET_HN"));
+  int nbjet = NBJet(GetJets("JET_NOLEPTONVETO", 20., 2.5));
   int njet5 = jets5.size();
-  int njetopt[3][6] = {{0}};
+  int njetopt[5][6] = {{0}};
 
-  snu::KParticle jetopt[3][6][njet5];
-  double x[3] = {20., 25., 30.};
+  snu::KParticle jetopt[5][6][njet5];
+  double x[5] = {10., 15., 20., 25., 30.};
   double y[6] = {4.5, 4.6, 4.7, 4.8, 4.9, 5.0};
-  TString SS1jet_pT_fwd[3][6]; TString SS1jet_eta_fwd[3][6];
-  TString Tch_Nevent[3][6]; TString Tch_1jet_Nevent[3][6];
-  TString Tch_Nevent_unweight[3][6]; TString Tch_1jet_Nevent_unweight[3][6];
-  int ptcut[3] = {20, 25, 30};
+  TString SS1jet_pT_fwd[5][6]; TString SS1jet_eta_fwd[5][6];
+  TString Tch_Nevent[5][6]; TString Tch_1jet_Nevent[5][6];
+  TString Tch_Nevent_unweight[5][6]; TString Tch_1jet_Nevent_unweight[5][6];
+  int ptcut[5] = {10, 15, 20, 25, 30};
   int etacut[6] = {45, 46, 47, 48, 49, 50};
 
-  for(unsigned int ij1=0; ij1<3; ij1++){
+  for(unsigned int ij1=0; ij1<5; ij1++){
     for(unsigned int ij2=0; ij2<6; ij2++){
       int ijet = 0;
       for(int ij0=0; ij0<njet5; ij0++){
-        if((jets5[ij0].Pt() > x[ij1]) && (jets5[ij0].Eta() < y[ij2])){ jetopt[ij1][ij2][ijet] = jets5[ij0]; ijet++; }
+        if((jets5[ij0].Pt() > x[ij1]) && (fabs(jets5[ij0].Eta()) < y[ij2])){ jetopt[ij1][ij2][ijet] = jets5[ij0]; ijet++; }
       }
       njetopt[ij1][ij2] = ijet;
     }
@@ -125,8 +126,7 @@ void diel::ExecuteEvents()throw( LQError ){
   double ev_weight = 1.;
 
   if(!isData){
-    if(GetMCPeriodRandom() < 6){ puweight = eventbase->GetEvent().PileUpWeight(snu::KEvent::down); }
-    else{ puweight = mcdata_correction->UserPileupWeight(eventbase->GetEvent(), jets.size()); }
+    puweight = eventbase->GetEvent().PileUpWeight(snu::KEvent::down);
     reco_sf = mcdata_correction->ElectronRecoScaleFactor(electrons);
     id_iso_sf = mcdata_correction->ElectronScaleFactor(elid, electrons, 0);
     trigger_ps = WeightByTrigger(trig, TargetLumi);
@@ -137,6 +137,7 @@ void diel::ExecuteEvents()throw( LQError ){
     ev_weight = weight*puweight*reco_sf*id_iso_sf*trigger_sf*GetKFactor()*MC_CR_Correction(0);
   }
   
+  CorrectedMETRochester(muons);
   double met = eventbase->GetEvent().PFMET();
   double ST = eventbase->GetEvent().PFMET();
   double met2st = met*met/ST;  
@@ -165,14 +166,14 @@ void diel::ExecuteEvents()throw( LQError ){
           if((muons_veto.size() == 0) && (electrons_veto.size() == 2)){
             FillHist("cutflow", 6.5, 1., 0., 10., 10);
             snu::KParticle X = electrons[0] + electrons[1];
-            if(X.M() > 10.){
+            if((X.M() > 10.) && (fabs(X.M()-90.) > 10.)){
               FillHist("cutflow", 7.5, 1., 0., 10., 10);
               ST += electrons[0].Pt() + electrons[1].Pt();
               for(unsigned int j=0; j<njet; j++){ ST += jets[j].Pt(); }
               met2st = met*met/ST;
 
               if(njet == 1){
-                for(unsigned int il1=0; il1<3; il1++){
+                for(unsigned int il1=0; il1<5; il1++){
                   for(unsigned int il2=0; il2<6; il2++){
                     if(njetopt[il1][il2] > 0){
                       SS1jet_pT_fwd[il1][il2] = Form("SS1jet_pT_fwd_pT_%d_eta_%d", ptcut[il1], etacut[il2]);
@@ -182,8 +183,8 @@ void diel::ExecuteEvents()throw( LQError ){
                       FillHist("SS1jet_eta_lep1", electrons[0].Eta(), ev_weight, -2.5, 2.5, 50);
                       FillHist("SS1jet_eta_lep2", electrons[1].Eta(), ev_weight, -2.5, 2.5, 50);
                       for(unsigned int il3=0; il3<njetopt[il1][il2]; il3++){
-                         FillHist(SS1jet_pT_fwd[il1][il2], jetopt[il1][il2][il3].Pt(), ev_weight, 0., 500., 500);
-                         FillHist(SS1jet_eta_fwd[il1][il2], jetopt[il1][il2][il3].Eta(), ev_weight, -5., 5., 100);
+                        FillHist(SS1jet_pT_fwd[il1][il2], jetopt[il1][il2][il3].Pt(), ev_weight, 0., 500., 500);
+                        FillHist(SS1jet_eta_fwd[il1][il2], jetopt[il1][il2][il3].Eta(), ev_weight, -5., 5., 100);
                       }
                     }
                   }
@@ -223,7 +224,7 @@ void diel::ExecuteEvents()throw( LQError ){
                   FillHist("Sch_mass_lljj", lljj.M(), ev_weight, 0., 1500., 1500);
 
                   bool fwd0 = false, fwd1 = false, fwd2 = false;
-                  for(unsigned int ik1=0; ik1<3; ik1++){
+                  for(unsigned int ik1=0; ik1<5; ik1++){
                     for(unsigned int ik2=0; ik2<6; ik2++){
                       if(njetopt[ik1][ik2] > 0){
                         Tch_1jet_Nevent[ik1][ik2] = Form("Tch_1jet_Nevent_pT_%d_et_%d", ptcut[ik1], etacut[ik2]);
