@@ -168,7 +168,7 @@ void dimu::ExecuteEvents()throw( LQError ){
             snu::KParticle X = muons[0] + muons[1];
             if(X.M() > 10.){
               FillHist("cutflow", 7.5, 1., 0., 10., 10);
-              ST += muons[0].Pt() + muons[1].Pt();
+              ST = ST + muons[0].Pt() + muons[1].Pt();
               for(unsigned int j=0; j<njet; j++){ ST += jets[j].Pt(); }
               met2st = met*met/ST;
 

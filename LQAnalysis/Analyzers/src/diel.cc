@@ -33,7 +33,6 @@ diel::diel() :  AnalyzerCore(), out_muons(0)  {
   //
   // This function sets up Root files and histograms Needed in ExecuteEvents
   InitialiseAnalysis();
-  MakeCleverHistograms(sighist_mm,"DiMuon");
 
 }
 
@@ -134,7 +133,7 @@ void diel::ExecuteEvents()throw( LQError ){
     double trigger_eff_Data = mcdata_correction->TriggerEfficiencyLegByLeg(electrons, elid, mu, "muid", 1, 0, 0);
     double trigger_eff_MC = mcdata_correction->TriggerEfficiencyLegByLeg(electrons, elid, mu, "muid", 1, 1, 0);
     trigger_sf = trigger_eff_Data/trigger_eff_MC;
-    ev_weight = weight*puweight*reco_sf*id_iso_sf*trigger_sf*GetKFactor()*MC_CR_Correction(0);
+    ev_weight = weight*puweight*reco_sf*id_iso_sf*trigger_sf*trigger_ps*GetKFactor()*MC_CR_Correction(0);
   }
   
   CorrectedMETRochester(muons);
@@ -142,7 +141,7 @@ void diel::ExecuteEvents()throw( LQError ){
   double ST = eventbase->GetEvent().PFMET();
   double met2st = met*met/ST;  
 
-  bool charge = false; 
+  bool charge = false;
 
   FillHist("cutflow", 1.5, 1., 0., 10., 10);
 
@@ -151,15 +150,17 @@ void diel::ExecuteEvents()throw( LQError ){
     if(electrons.size() == 2){      
     FillHist("cutflow", 3.5, 1., 0., 10., 10);
       if((!k_running_chargeflip) && (electrons[0].Charge() == electrons[1].Charge())){ charge = true; }
-      if(k_running_chargeflip && (electrons[0].Charge() != electrons[1].Charge())){ charge = true; }
+      if(k_running_chargeflip && (electrons[0].Charge()*electrons[1].Charge() < 0)){ charge = true; }
+      FillHist("charge_lep1", electrons[0].Charge()*electrons[1].Charge(), 1., -2., 2., 4);
       if(charge){
+        FillHist("charge_lep2", electrons[0].Charge()*electrons[1].Charge(), 1., -2., 2., 4);
         FillHist("cutflow", 4.5, 1., 0., 10., 10);
         if(k_running_nonprompt){
           ev_weight = m_datadriven_bkg->Get_DataDrivenWeight_EE(false, electrons, "ELECTRON_HN_TIGHTv4", "ptcone", "fr_electron_central",0);
         }
         if(k_running_chargeflip){
-          ShiftElectronEnergy(electrons, elid, true);
-          ev_weight = GetCFweight(0, electrons, true, elid);
+          ShiftElectronEnergy(electrons, "ELECTRON_HN_TIGHTv4", true);
+          ev_weight = GetCFweight(0, electrons, true, "ELECTRON_HN_TIGHTv4");
         }
         if((electrons[0].Pt() > 25.) && (electrons[1].Pt() > 15.)){
           FillHist("cutflow", 5.5, 1., 0., 10., 10);
@@ -168,7 +169,7 @@ void diel::ExecuteEvents()throw( LQError ){
             snu::KParticle X = electrons[0] + electrons[1];
             if((X.M() > 10.) && (fabs(X.M()-90.) > 10.)){
               FillHist("cutflow", 7.5, 1., 0., 10., 10);
-              ST += electrons[0].Pt() + electrons[1].Pt();
+              ST = ST +  electrons[0].Pt() + electrons[1].Pt();
               for(unsigned int j=0; j<njet; j++){ ST += jets[j].Pt(); }
               met2st = met*met/ST;
 
