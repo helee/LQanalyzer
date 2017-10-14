@@ -103,8 +103,8 @@ void diel::ExecuteEvents()throw( LQError ){
   double x[5] = {10., 15., 20., 25., 30.};
   double y[6] = {4.5, 4.6, 4.7, 4.8, 4.9, 5.0};
   TString SS1jet_pT_fwd[5][6]; TString SS1jet_eta_fwd[5][6];
-  TString Tch_Nevent[5][6]; TString Tch_1jet_Nevent[5][6];
-  TString Tch_Nevent_unweight[5][6]; TString Tch_1jet_Nevent_unweight[5][6];
+  TString Tch_Nevent[5][6]; TString Tch_2jet_Nevent[5][6]; TString Tch_pT_fwd[5][6]; TString Tch_eta_fwd[5][6];
+  TString Tch_Nevent_unweight[5][6]; TString Tch_2jet_Nevent_unweight[5][6];
   int ptcut[5] = {10, 15, 20, 25, 30};
   int etacut[6] = {45, 46, 47, 48, 49, 50};
 
@@ -183,8 +183,10 @@ void diel::ExecuteEvents()throw( LQError ){
                       FillHist("SS1jet_eta_lep1", electrons[0].Eta(), ev_weight, -2.5, 2.5, 50);
                       FillHist("SS1jet_eta_lep2", electrons[1].Eta(), ev_weight, -2.5, 2.5, 50);
                       for(unsigned int il3=0; il3<njetopt[il1][il2]; il3++){
-                        FillHist(SS1jet_pT_fwd[il1][il2], jetopt[il1][il2][il3].Pt(), ev_weight, 0., 500., 500);
-                        FillHist(SS1jet_eta_fwd[il1][il2], jetopt[il1][il2][il3].Eta(), ev_weight, -5., 5., 100);
+                        if(fabs(jetopt[il1][il2][il3].Eta()) > 2.5){
+                          FillHist(SS1jet_pT_fwd[il1][il2], jetopt[il1][il2][il3].Pt(), ev_weight, 0., 300., 300);
+                          FillHist(SS1jet_eta_fwd[il1][il2], jetopt[il1][il2][il3].Eta(), ev_weight, -5., 5., 100);
+                        }
                       }
                     }
                   }
@@ -223,30 +225,33 @@ void diel::ExecuteEvents()throw( LQError ){
                   FillHist("Sch_mass_l2jj", l2jj.M(), ev_weight, 0., 1500., 1500);
                   FillHist("Sch_mass_lljj", lljj.M(), ev_weight, 0., 1500., 1500);
 
-                  bool fwd0 = false, fwd1 = false, fwd2 = false;
+                  bool fwd1 = false, fwd2 = false;
                   for(unsigned int ik1=0; ik1<5; ik1++){
                     for(unsigned int ik2=0; ik2<6; ik2++){
                       if(njetopt[ik1][ik2] > 0){
-                        Tch_1jet_Nevent[ik1][ik2] = Form("Tch_1jet_Nevent_pT_%d_et_%d", ptcut[ik1], etacut[ik2]);
-                        Tch_1jet_Nevent_unweight[ik1][ik2] = Form("Tch_1jet_Nevent_unweight_pT_%d_et_%d", ptcut[ik1], etacut[ik2]);
-                        for(unsigned int ik4=0; ik4<njetopt[ik1][ik2]; ik4++){
-                          if(fabs(jetopt[ik1][ik2][ik4].Eta()) > 2.5){ fwd0 = true; }
-                        }
-                        if(fwd0){
-                          FillHist(Tch_1jet_Nevent[ik1][ik2], 0.5, ev_weight, 0., 2., 2);
-                          FillHist(Tch_1jet_Nevent_unweight[ik1][ik2], 0.5, 1., 0., 2., 2);
-                         }
-                      }
-                      if(njetopt[ik1][ik2] > 1){
                         Tch_Nevent[ik1][ik2] = Form("Tch_Nevent_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
                         Tch_Nevent_unweight[ik1][ik2] = Form("Tch_Nevent_unweight_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
+                        Tch_pT_fwd[ik1][ik2] = Form("Tch_pT_fwd_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
+                        Tch_eta_fwd[ik1][ik2] = Form("Tch_eta_fwd_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
+                        for(unsigned int ik4=0; ik4<njetopt[ik1][ik2]; ik4++){
+                          if(fabs(jetopt[ik1][ik2][ik4].Eta()) > 2.5){ 
+                            FillHist(Tch_Nevent[ik1][ik2], 0.5, ev_weight, 0., 2., 2);
+                            FillHist(Tch_Nevent_unweight[ik1][ik2], 0.5, 1., 0., 2., 2);
+                            FillHist(Tch_pT_fwd[ik1][ik2], jetopt[ik1][ik2][ik4].Pt(), ev_weight, 0., 300., 300);
+                            FillHist(Tch_eta_fwd[ik1][ik2], jetopt[ik1][ik2][ik4].Eta(), ev_weight, -5., 5., 100);
+                          }
+                        }
+                      }
+                      if(njetopt[ik1][ik2] > 1){
+                        Tch_2jet_Nevent[ik1][ik2] = Form("Tch_2jet_Nevent_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
+                        Tch_2jet_Nevent_unweight[ik1][ik2] = Form("Tch_2jet_Nevent_unweight_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
                         for(unsigned int ik3=0; ik3<njetopt[ik1][ik2]; ik3++){
                           if(jetopt[ik1][ik2][ik3].Eta() > 2.5){ fwd1 = true; }
                           if(jetopt[ik1][ik2][ik3].Eta() < -2.5){ fwd2 = true; }
                         }
                         if(fwd1 && fwd2){
-                          FillHist(Tch_Nevent[ik1][ik2], 0.5, ev_weight, 0., 2., 2);
-                          FillHist(Tch_Nevent_unweight[ik1][ik2], 0.5, 1., 0., 2., 2);
+                          FillHist(Tch_2jet_Nevent[ik1][ik2], 0.5, ev_weight, 0., 2., 2);
+                          FillHist(Tch_2jet_Nevent_unweight[ik1][ik2], 0.5, 1., 0., 2., 2);
                         }
                       }
                     }
