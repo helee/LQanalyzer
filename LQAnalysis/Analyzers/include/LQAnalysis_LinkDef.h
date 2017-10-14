@@ -22,5 +22,7 @@
 #pragma link C++ class HNEMu+;
 #pragma link C++ class GetFakeSF+;
 #pragma link C++ class PileupValidation+;
+#pragma link C++ class diel+;
+#pragma link C++ class dimu+;
 
 #endif // __CINT__
