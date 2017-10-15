@@ -86,8 +86,8 @@ declare -a tmp2=(
  )
 declare -a new_list=('DYJets' 'LowStatDYJets' )
 
-declare -a dilep_bkg=('ZZTo4L_powheg' 'WZTo3LNu_powheg' 'WpWpQCD' 'WpWpEWK' 'ww_ds' 'ZGto2LG' 'WGtoLNuG' 'ttWToLNu' 'ttZToLL_M-10' 'ttZToLL_M-1to10' 'tZq' 'TTG' 'ttH_bb' 'ttH_nonbb' 'WWW' 'WWZ' 'WZZ' 'ZZZ' 'WWG' 'WZG' 'VBF_HToMuMu' 'ggHtoWW' 'ggHtoZZ' 'vbfHtoWW')
-declare -a dilep_bkg2=('GG_HToMuMu' 'vbhHtoZZ')
+declare -a dilep_bkg=('ZZTo4L_powheg' 'ZZTo2L2Nu_Powheg' 'ZZTo2L2Q_Powheg' 'ggZZto2e2mu' 'ggZZto2e2nu' 'ggZZto2e2tau' 'ggZZto2mu2nu' 'ggZZto2mu2tau' 'WZTo3LNu_powheg' 'WZto2L2Q_amcatnlo' 'WpWpQCD' 'WpWpEWK' 'WWTo2L2Nu_DS' 'WWTo2L2Nu' 'ggWWto2L2Nu')
+declare -a dilep_bkg2=('ZGto2LG' 'WGtoLNuG' 'ttWToLNu' 'ttZToLL_M-10' 'ttZToLL_M-1to10' 'tZq' 'TG' 'TTG' 'ttH_bb' 'ttH_nonbb' 'WWW' 'WWZ' 'WZZ' 'ZZZ' 'WWG' 'WZG' 'ggHtoWW' 'ggHtoZZ')
 declare -a Tch1=('HNMoriondLL_Tchannel_MupMup_100' 'HNMoriondLL_Tchannel_MumMum_100' 'HNMoriondLL_Tchannel_MupMup_200' 'HNMoriondLL_Tchannel_MumMum_200' 'HNMoriondLL_Tchannel_MupMup_500' 'HNMoriondLL_Tchannel_MumMum_500' 'HNMoriondLL_Tchannel_MupMup_1100' 'HNMoriondLL_Tchannel_MumMum_1100')
 declare -a Tch2=('HNMoriondLL_Tchannel_EpEp_100' 'HNMoriondLL_Tchannel_EmEm_100' 'HNMoriondLL_Tchannel_EpEp_200' 'HNMoriondLL_Tchannel_EmEm_200' 'HNMoriondLL_Tchannel_EpEp_500' 'HNMoriondLL_Tchannel_EmEm_500' 'HNMoriondLL_Tchannel_EpEp_1100' 'HNMoriondLL_Tchannel_EmEm_1100')
 declare -a Sch1=('HNMoriondLLMupMup_100' 'HNMoriondLLMumMum_100' 'HNMoriondLLMupMup_200' 'HNMoriondLLMumMum_200' 'HNMoriondLLMupMup_500' 'HNMoriondLLMumMum_500' 'HNMoriondLLMupMup_1100' 'HNMoriondLLMumMum_1100')

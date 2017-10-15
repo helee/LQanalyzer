@@ -194,8 +194,9 @@ void diel::ExecuteEvents()throw( LQError ){
                 }
               }
 
-              if((njet > 1) && (nbjet == 0)){
-                FillHist("cutflow", 8.5, 1., 0., 10., 10);
+              if(njet > 1){
+                FillHist("Presel_Nevent", 0.5, ev_weight, 0., 2., 2);
+                if(nbjet > 0) return;
                 double wmass = 10000.; int j1 = 0; int j2 = 0;
                 for(unsigned int k=0; k<njet; k++){
                   for(unsigned int l=k+1; l<njet; l++){
@@ -210,6 +211,7 @@ void diel::ExecuteEvents()throw( LQError ){
                 snu::KParticle lljj = electrons[0] + electrons[1] + jets[j1] + jets[j2];
                 snu::KParticle W = jets[j1] + jets[j2];
                 FillHist("Presel_Nevent", 0.5, ev_weight, 0., 2., 2);
+                FillHist("cutflow", 8.5, 1., 0., 10., 10);
 
                 if((met2st < 15.) && (W.M() < 150.)){
                   FillHist("cutflow", 9.5, 1., 0., 10., 10);
