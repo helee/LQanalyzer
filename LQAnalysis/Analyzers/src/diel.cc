@@ -167,7 +167,7 @@ void diel::ExecuteEvents()throw( LQError ){
           if((muons_veto.size() == 0) && (electrons_veto.size() == 2)){
             FillHist("cutflow", 6.5, 1., 0., 10., 10);
             snu::KParticle X = electrons[0] + electrons[1];
-            if((X.M() > 10.) && (fabs(X.M()-90.) > 10.)){
+            if((X.M() > 10.) && (fabs(X.M()-91.1876) > 10.)){
               FillHist("cutflow", 7.5, 1., 0., 10., 10);
               ST = ST +  electrons[0].Pt() + electrons[1].Pt();
               for(unsigned int j=0; j<njet; j++){ ST += jets[j].Pt(); }
@@ -196,6 +196,7 @@ void diel::ExecuteEvents()throw( LQError ){
 
               if(njet > 1){
                 FillHist("Presel_Nevent", 0.5, ev_weight, 0., 2., 2);
+                FillHist("cutflow", 8.5, 1., 0., 10., 10);
                 if(nbjet > 0) return;
                 double wmass = 10000.; int j1 = 0; int j2 = 0;
                 for(unsigned int k=0; k<njet; k++){
@@ -210,8 +211,6 @@ void diel::ExecuteEvents()throw( LQError ){
                 snu::KParticle l2jj = electrons[1] + jets[j1] + jets[j2];
                 snu::KParticle lljj = electrons[0] + electrons[1] + jets[j1] + jets[j2];
                 snu::KParticle W = jets[j1] + jets[j2];
-                FillHist("Presel_Nevent", 0.5, ev_weight, 0., 2., 2);
-                FillHist("cutflow", 8.5, 1., 0., 10., 10);
 
                 if((met2st < 15.) && (W.M() < 150.)){
                   FillHist("cutflow", 9.5, 1., 0., 10., 10);
