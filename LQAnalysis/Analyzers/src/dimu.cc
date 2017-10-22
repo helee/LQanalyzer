@@ -66,7 +66,8 @@ void dimu::ExecuteEvents()throw( LQError ){
       fake_hists["fr_muon_central"] = std::make_pair(std::make_pair("Muon_Data_v7_SIP3_FR.root","Muon_Data_v7_SIP3_FR_Awayjet40"), std::make_pair(70., "TH2D"));
       fake_hists["fr_electron_central"] = std::make_pair(std::make_pair("Electron_Data_v7_FR.root","Electron_Data_v7_FR_Awayjet40") , std::make_pair(70., "TH2D"));
 
-      ConfigureFakeHists("/data1/LQAnalyzer_rootfiles_for_analysis/CATAnalysis2016/Fake/DiLep/", fake_hists);
+//      ConfigureFakeHists("/data1/LQAnalyzer_rootfiles_for_analysis/CATAnalysis2016/Fake/DiLep/", fake_hists);
+      ConfigureFakeHists("/data1/jskim_public/LeptonFakeRates/NewRun_171009/", fake_hists);
     }
   }
   /// Apply the gen weight 
@@ -105,6 +106,7 @@ void dimu::ExecuteEvents()throw( LQError ){
   TString SS1jet_pT_fwd[5][6]; TString SS1jet_eta_fwd[5][6];
   TString Tch_Nevent[5][6]; TString Tch_2jet_Nevent[5][6]; TString Tch_pT_fwd[5][6]; TString Tch_eta_fwd[5][6];
   TString Tch_Nevent_unweight[5][6]; TString Tch_2jet_Nevent_unweight[5][6];
+  TString Presel_Nfwdjet[5][6];
   int ptcut[5] = {10, 15, 20, 25, 30};
   int etacut[6] = {45, 46, 47, 48, 49, 50};
 
@@ -112,16 +114,17 @@ void dimu::ExecuteEvents()throw( LQError ){
     for(unsigned int ij2=0; ij2<6; ij2++){
       int ijet = 0;
       for(int ij0=0; ij0<njet5; ij0++){
-        if((jets5[ij0].Pt() > x[ij1]) && (fabs(jets5[ij0].Eta()) < y[ij2])){ jetopt[ij1][ij2][ijet] = jets5[ij0]; ijet++; }
+        if((jets5[ij0].Pt() > x[ij1]) && (fabs(jets5[ij0].Eta()) > 2.5) && (fabs(jets5[ij0].Eta()) < y[ij2])){ jetopt[ij1][ij2][ijet] = jets5[ij0]; ijet++; }
       }
       njetopt[ij1][ij2] = ijet;
     }
   }  
-
+  
   TString muid = "MUON_HN_TIGHT";
   if(k_running_nonprompt) muid = "MUON_HN_LOOSEv7_SIP3"; 
   std::vector<snu::KMuon> muons = GetMuons(muid, false);
   std::vector<snu::KMuon> muons_veto = GetMuons("MUON_HN_VETO", true);
+  std::vector<snu::KMuon> muons_tight = GetMuons("MUON_HN_TIGHT", false);
 
   double puweight = 1.;
   double reco_sf = 1.;
@@ -172,6 +175,14 @@ void dimu::ExecuteEvents()throw( LQError ){
               for(unsigned int j=0; j<njet; j++){ ST += jets[j].Pt(); }
               met2st = met*met/ST;
 
+              FillHist("Presel_Njet", njet, ev_weight, 0., 8., 8);
+              for(unsigned int im1=0; im1<5; im1++){
+                for(unsigned int im2=0; im2<6; im2++){
+                  Presel_Nfwdjet[im1][im2] = Form("Presel_Nfwdjet_pT_%d_eta_%d", ptcut[im1], etacut[im2]);
+                  FillHist(Presel_Nfwdjet[im1][im2], njetopt[im1][im2], ev_weight, 0., 5., 5);         
+                }
+              }
+
               if(njet == 1){
                 for(unsigned int il1=0; il1<5; il1++){
                   for(unsigned int il2=0; il2<6; il2++){
@@ -195,6 +206,10 @@ void dimu::ExecuteEvents()throw( LQError ){
               if(njet > 1){
                 FillHist("Presel_Nevent", 0.5, ev_weight, 0., 2., 2);
                 FillHist("cutflow", 8.5, 1., 0., 10., 10);
+                if(muons_tight.size() == 0) FillHist("Presel_Nevent_unweight", 0.5, 1., 0., 3., 3);
+                if(muons_tight.size() == 1) FillHist("Presel_Nevent_unweight", 1.5, 1., 0., 3., 3);
+                if(muons_tight.size() == 2) FillHist("Presel_Nevent_unweight", 2.5, 1., 0., 3., 3);
+
                 if(nbjet > 0) return; 
                 double wmass = 10000.; int j1 = 0; int j2 = 0;
                 for(unsigned int k=0; k<njet; k++){
@@ -233,16 +248,16 @@ void dimu::ExecuteEvents()throw( LQError ){
                         Tch_Nevent_unweight[ik1][ik2] = Form("Tch_Nevent_unweight_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
                         Tch_pT_fwd[ik1][ik2] = Form("Tch_pT_fwd_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
                         Tch_eta_fwd[ik1][ik2] = Form("Tch_eta_fwd_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
+                        FillHist(Tch_Nevent[ik1][ik2], 0.5, ev_weight, 0., 2., 2);
+                        FillHist(Tch_Nevent_unweight[ik1][ik2], 0.5, 1., 0., 2., 2);
                         for(unsigned int ik4=0; ik4<njetopt[ik1][ik2]; ik4++){
                           if(fabs(jetopt[ik1][ik2][ik4].Eta()) > 2.5){
-                            FillHist(Tch_Nevent[ik1][ik2], 0.5, ev_weight, 0., 2., 2);
-                            FillHist(Tch_Nevent_unweight[ik1][ik2], 0.5, 1., 0., 2., 2);
                             FillHist(Tch_pT_fwd[ik1][ik2], jetopt[ik1][ik2][ik4].Pt(), ev_weight, 0., 300., 300);
                             FillHist(Tch_eta_fwd[ik1][ik2], jetopt[ik1][ik2][ik4].Eta(), ev_weight, -5., 5., 100);
                           }
                         }
                       }
-                      if(njetopt[ik1][ik2] > 1){
+ /*                     if(njetopt[ik1][ik2] > 1){
                         Tch_2jet_Nevent[ik1][ik2] = Form("Tch_2jet_Nevent_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]);
                         Tch_2jet_Nevent_unweight[ik1][ik2] = Form("Tch_2jet_Nevent_unweight_pT_%d_eta_%d", ptcut[ik1], etacut[ik2]); 
                         for(unsigned int ik3=0; ik3<njetopt[ik1][ik2]; ik3++){
@@ -253,7 +268,7 @@ void dimu::ExecuteEvents()throw( LQError ){
                           FillHist(Tch_2jet_Nevent[ik1][ik2], 0.5, ev_weight, 0., 2., 2);
                           FillHist(Tch_2jet_Nevent_unweight[ik1][ik2], 0.5, 1., 0., 2., 2); 
                         }
-                      }
+                      }*/
                     }
                   }
                 }
